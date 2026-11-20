@@ -18,7 +18,9 @@ const fs = require('fs');
 const path = require('path');
 
 const G = 'https://graph.facebook.com/v27.0';
-const { PAGE_TOKEN, IG_USER_ID, PAGE_ID, GITHUB_REPOSITORY, GITHUB_SHA, SOLO_REVISAR } = process.env;
+const limpio = v => (process.env[v] || '').trim(); // los secretos pueden traer salto de línea al final
+const [PAGE_TOKEN, IG_USER_ID, PAGE_ID] = ['PAGE_TOKEN', 'IG_USER_ID', 'PAGE_ID'].map(limpio);
+const { GITHUB_REPOSITORY, GITHUB_SHA, SOLO_REVISAR } = process.env;
 const RAIZ = path.join(__dirname, '..');
 const REGISTRO = path.join(RAIZ, 'publicados.json');
 const MAX_RETRASO_H = 24; // si un post se quedó atrasado más de esto, no se publica solo
@@ -101,7 +103,7 @@ async function publicarFB(carpeta, post) {
 }
 
 (async () => {
-  for (const v of ['PAGE_TOKEN', 'IG_USER_ID', 'PAGE_ID']) if (!process.env[v]) throw new Error(`Falta el secreto ${v}`);
+  for (const v of ['PAGE_TOKEN', 'IG_USER_ID', 'PAGE_ID']) if (!limpio(v)) throw new Error(`Falta el secreto ${v}`);
   const registro = fs.existsSync(REGISTRO) ? JSON.parse(fs.readFileSync(REGISTRO, 'utf8')) : {};
   const ahora = new Date();
 
