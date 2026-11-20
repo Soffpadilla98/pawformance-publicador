@@ -1,0 +1,42 @@
+name: Publicar en Instagram y Facebook
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # revisa cada 15 min (GitHub a veces se atrasa unos minutos)
+  workflow_dispatch:
+    inputs:
+      solo_revisar:
+        description: 'Solo revisar (no publica nada)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Publicar lo que ya toca
+        run: node scripts/publicar.js
+        env:
+          PAGE_TOKEN: ${{ secrets.PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          PAGE_ID: ${{ secrets.PAGE_ID }}
+          SOLO_REVISAR: ${{ github.event_name == 'workflow_dispatch' && inputs.solo_revisar && '1' || '' }}
+      - name: Guardar registro
+        if: always()
+        run: |
+          git config user.name "pawformance-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add publicados.json 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "Registro de publicaciones" && git pull --rebase && git push)
