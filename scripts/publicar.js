@@ -124,6 +124,7 @@ async function publicarFB(carpeta, post) {
     if (isNaN(cuando)) { console.log(`· ${carpeta}: fecha inválida`); fallos++; continue; }
     if (cuando > ahora) { console.log(`· ${carpeta}: programado para ${post.publicar_en}`); continue; }
     if ((ahora - cuando) / 36e5 > MAX_RETRASO_H && !listoIG) { console.log(`! ${carpeta}: lleva más de ${MAX_RETRASO_H} h atrasado; no se publica solo`); continue; }
+    if (post.caduca_en && ahora > new Date(post.caduca_en) && !listoIG) { console.log(`! ${carpeta}: caducó el ${post.caduca_en}; ya no se publica`); continue; }
     for (const a of post.archivos || []) if (!fs.existsSync(path.join(dirPosts, carpeta, a))) throw new Error(`${carpeta}: falta el archivo ${a}`);
 
     if (SOLO_REVISAR) { console.log(`→ ${carpeta}: TOCA publicar (modo revisión, no se publica)`); continue; }
